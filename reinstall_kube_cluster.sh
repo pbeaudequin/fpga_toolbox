@@ -28,10 +28,10 @@ step0() {
 }
 
 
-pause "Setting up kube cluster"
+#pause "Setting up kube cluster"
 
 pause "Reset cluster"
-docmd kubeadmin reset
+docmd sudo kubeadm reset -f
 
 pause "Disable Swap"
 docmd sudo swapoff -a
