@@ -38,4 +38,18 @@ docmd sudo swapoff -a
 
 pause "Init master node"
 docmd sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-docmd sudo mkdir -p $HOME/.kube
+docmd sudo mkdir -p $HOME/.kube /root/.kube
+docmd sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+docmd sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
+docmd sudo chown $(id -u):$(id -g) $HOME/.kube/config
+docmd sudo netstat -nltp | grep apiserver
+
+
+pause "Configure flannel"
+docmd sudo sysctl net.bridge.bridge-nf-call-iptables=1
+docmd kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+docmd sudo kubectl get pod -n kube-system -o wide
+
+
+pause "Install k8s FPGA plugin"
+docmd sudo kubectl taint nodes --all node-role.kubernetes.io/master-
