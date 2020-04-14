@@ -2,6 +2,8 @@
 
 set -e
 
+FAAS_DIR = ${HOME}/dev/FPGA_as_a_Service
+
 
 pause() {
   local step="${1}"
@@ -28,28 +30,29 @@ step0() {
 }
 
 
-#pause "Setting up kube cluster"
+#pause "Reset cluster"
+#docmd sudo kubeadm reset -f
 
-pause "Reset cluster"
-docmd sudo kubeadm reset -f
-
-pause "Disable Swap"
-docmd sudo swapoff -a
+#pause "Disable Swap"
+#docmd sudo swapoff -a
 
 pause "Init master node"
 docmd sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-docmd sudo mkdir -p $HOME/.kube /root/.kube
-docmd sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+docmd sudo mkdir -p /root/.kube
+docmd sudo rm /root/.kube/config 
 docmd sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
-docmd sudo chown $(id -u):$(id -g) $HOME/.kube/config
-docmd sudo netstat -nltp | grep apiserver
+docmd sudo `netstat -nltp | grep apiserver`
 
 
 pause "Configure flannel"
 docmd sudo sysctl net.bridge.bridge-nf-call-iptables=1
-docmd kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+docmd sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 docmd sudo kubectl get pod -n kube-system -o wide
 
 
 pause "Install k8s FPGA plugin"
 docmd sudo kubectl taint nodes --all node-role.kubernetes.io/master-
+docmd git clone https://github.com/Xilinx/FPGA_as_a_Service.git ${FAAS_DIR}
+docmd sudo kubectl create -f ${FAAS_DIR}/k8s-fpga-device-plugin/fpga-device-plugin.yml
+docmd sudo kubectl get pod -n kube-system
+docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].metadata.name}'`
