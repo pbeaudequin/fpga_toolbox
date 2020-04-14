@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e
+#set -e
 
-FAAS_DIR = ${HOME}/dev/FPGA_as_a_Service
+export FAAS_DIR=${HOME}/dev/FPGA_as_a_Service
 
 
 pause() {
@@ -30,18 +30,17 @@ step0() {
 }
 
 
-#pause "Reset cluster"
-#docmd sudo kubeadm reset -f
+pause "Reset cluster"
+docmd sudo kubeadm reset -f
 
-#pause "Disable Swap"
-#docmd sudo swapoff -a
+pause "Disable Swap"
+docmd sudo swapoff -a
 
 pause "Init master node"
 docmd sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 docmd sudo mkdir -p /root/.kube
-docmd sudo rm /root/.kube/config 
-docmd sudo cp -i /etc/kubernetes/admin.conf /root/.kube/config
-docmd sudo `netstat -nltp | grep apiserver`
+docmd sudo ln -sf /etc/kubernetes/admin.conf /root/.kube/config
+docmd sudo netstat -nltp | grep apiserver
 
 
 pause "Configure flannel"
@@ -55,4 +54,6 @@ docmd sudo kubectl taint nodes --all node-role.kubernetes.io/master-
 docmd git clone https://github.com/Xilinx/FPGA_as_a_Service.git ${FAAS_DIR}
 docmd sudo kubectl create -f ${FAAS_DIR}/k8s-fpga-device-plugin/fpga-device-plugin.yml
 docmd sudo kubectl get pod -n kube-system
+docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].metadata.name}'`
+docmd sleep 2
 docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].metadata.name}'`
