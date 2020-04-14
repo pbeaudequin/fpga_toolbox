@@ -1,8 +1,9 @@
 #!/bin/bash
-
-#set -e
+# Inspired from https://opensource.com/article/20/2/live-demo-script
+#set -e # Do not stop on erros
 
 export FAAS_DIR=${HOME}/dev/FPGA_as_a_Service
+mkdir -p ${FAAS_DIR}
 
 
 pause() {
@@ -57,3 +58,8 @@ docmd sudo kubectl get pod -n kube-system
 docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].metadata.name}'`
 docmd sleep 2
 docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].metadata.name}'`
+
+pause "FPGA card status | need f1.* instance"
+docmd sudo systemctl start mpd
+docmd sudo systemctl status mpd
+docmd sudo xbutil scan
