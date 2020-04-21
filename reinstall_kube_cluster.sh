@@ -30,6 +30,8 @@ step0() {
   docmd echo 'Test'
 }
 
+pause "Source xilinx setenv"
+docmd source $AWS_FPGA_REPO_DIR/vitis_setup.sh
 
 pause "Reset cluster"
 docmd sudo kubeadm reset -f
@@ -39,8 +41,9 @@ docmd sudo swapoff -a
 
 pause "Init master node"
 docmd sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-docmd sudo mkdir -p /root/.kube
-docmd sudo ln -sf /etc/kubernetes/admin.conf /root/.kube/config
+docmd mkdir -p ~/.kube
+docmd sudo ln -sf /etc/kubernetes/admin.conf ~/.kube/config
+docmd sudo chown centos:centos ~/.kube/config
 docmd sudo netstat -nltp | grep apiserver
 
 
@@ -62,4 +65,4 @@ docmd sudo kubectl describe node `sudo kubectl get node -o jsonpath='{.items[0].
 pause "FPGA card status | need f1.* instance"
 docmd sudo systemctl start mpd
 docmd sudo systemctl status mpd
-docmd sudo xbutil scan
+docmd xbutil scan
